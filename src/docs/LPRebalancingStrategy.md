@@ -53,23 +53,23 @@ The optimal strategy proposed here is a **Volatility-Adaptive Threshold Rebalanc
 
 1. **Volatility Calculation**:
    - Compute daily log returns from `cbbtc_prices_history` over `volatility_window` (e.g., 30 days): $r_t = \ln\left( \frac{p_t}{p_{t-1}} \right)$.
-   - Use Exponentially Weighted Moving Average (EWMA) for variance: Initialize with simple variance over the window, then update as \($ \sigma_t^2 = \lambda \cdot \sigma_{t-1}^2 + (1 - \lambda) \cdot r_{t-1}^2$ \), where \($\lambda$\) is `ewma_lambda` (e.g., 0.94).
-   - Volatility \($ \sigma = \sqrt{\sigma_t^2} \times \sqrt{365} $\) (annualized). This gives more weight to recent data, improving responsiveness to market changes.
+   - Use Exponentially Weighted Moving Average (EWMA) for variance: Initialize with simple variance over the window, then update as $ \sigma_t^2 = \lambda \cdot \sigma_{t-1}^2 + (1 - \lambda) \cdot r_{t-1}^2 $, where $\lambda$ is `ewma_lambda` (e.g., 0.94).
+   - Volatility $ \sigma = \sqrt{\sigma_t^2} \times \sqrt{365} $ (annualized). This gives more weight to recent data, improving responsiveness to market changes.
 
 2. **Dynamic Position Range Calculation**:
    - Center the range around `cbbtc_price`.
-   - Set lower bound: \( cbbtc_price \times e^{-\sigma \times range_width_factor} \).
-   - Set upper bound: \( cbbtc_price \times e^{\sigma \times range_width_factor} \).
+   - Set lower bound: $ cbbtc_price \times e^{-\sigma \times range_width_factor} $.
+   - Set upper bound: $ cbbtc_price \times e^{\sigma \times range_width_factor} $.
    - `range_width_factor` (e.g., 1-2) balances fees (narrower = higher) vs. IL risk (wider = safer). For cbBTC/USDC, start with 1.5 for moderate volatility.
    - Adjust liquidity amounts: Allocate `cbbtc_amount` and `usdc_amount` proportionally to maintain balance within the new range (using Uniswap V3 math for tick spacing).
 
 3. **Rebalancing Trigger**:
-   - Check if current `cbbtc_price` is outside the existing range or deviates by \( \sigma \times rebalance_threshold \) from the range center.
-   - Perform cost-benefit: Estimate expected fees without rebalance (e.g., 0 if out-of-range) vs. with rebalance: \($ expected_fees = lp_pool_apr \times liquidity_value \times expected_hold_time $\), where `liquidity_value` = \($ cbbtc_amount \times cbbtc_price + usdc_amount $\), and `expected_hold_time` = (range_width_factor)^2 \times 365 \) days (improved formula derived from Brownian motion expected hitting time for adaptive ranges, assuming zero drift for simplicity; this provides a constant hold time in days independent of volatility, as the range adapts proportionally).
-   - Rebalance if \($ (expected_fees_{new} - expected_fees_{old}) > (gas_fee + slippage_estimate) $\). Slippage is estimated based on the required swap amount to adjust asset ratios for the new range (e.g., using pool TVL and CPMM slippage approximation: slippage_rate ≈ (swap_size / (2 \times pool_tvl)), added as it represents a key rebalancing cost in low-liquidity pools.
+   - Check if current `cbbtc_price` is outside the existing range or deviates by $ \sigma \times rebalance_threshold $ from the range center.
+   - Perform cost-benefit: Estimate expected fees without rebalance (e.g., 0 if out-of-range) vs. with rebalance: $ expected_fees = lp_pool_apr \times liquidity_value \times expected_hold_time $, where `liquidity_value` = $ cbbtc_amount \times cbbtc_price + usdc_amount $, and `expected_hold_time` = (range_width_factor)^2 \times 365 $ days (improved formula derived from Brownian motion expected hitting time for adaptive ranges, assuming zero drift for simplicity; this provides a constant hold time in days independent of volatility, as the range adapts proportionally).
+   - Rebalance if $ (expected_fees_{new} - expected_fees_{old}) > (gas_fee + slippage_estimate) $. Slippage is estimated based on the required swap amount to adjust asset ratios for the new range (e.g., using pool TVL and CPMM slippage approximation: slippage_rate ≈ (swap_size / (2 \times pool_tvl)), added as it represents a key rebalancing cost in low-liquidity pools.
 
 4. **Overall Optimization**:
-   - Simulate IL using an improved approximation: ($ IL ≈ (log(upper/lower))^2 / 8 $) for small to moderate ranges (updated from (range width)^2 / 2 to align with Taylor expansion of the exact Uniswap V3 IL formula, where the log range width = 2 \sigma \times range_width_factor, leading to IL ≈ - (d^2 / 8 with d as half-log-width; this is more accurate for concentrated positions). For greater accuracy, compute exact IL using the position's value at range edges vs. hold value: IL = \frac{LP_value_at_edge}{hold_value_at_edge} - 1.
+   - Simulate IL using an improved approximation: $ IL \approx (\log(upper/lower))^2 / 8 $ for small to moderate ranges (updated from (range width)^2 / 2 to align with Taylor expansion of the exact Uniswap V3 IL formula, where the log range width = 2 \sigma \times range_width_factor, leading to IL ≈ - (d^2 / 8 with d as half-log-width; this is more accurate for concentrated positions). For greater accuracy, compute exact IL using the position's value at range edges vs. hold value: IL = \frac{LP_value_at_edge}{hold_value_at_edge} - 1.
    - Net return = Fees - IL - Gas - Slippage (cumulative over periods).
    - For cbBTC/USDC on Aerodrome, backtests from sources suggest this yields 20-40% higher net APR than passive, especially with high `lp_pool_apr` (>10%).
 
@@ -81,7 +81,7 @@ This strategy outperforms others in simulations (e.g., from "Predictable Loss an
 
 2. **Load Input Parameters**: Read inputs from command-line arguments or a config file (e.g., JSON), including `cbBTC`, `cbbtc_amount`, `usdc_amount`, `cbbtc_price`, `cbbtc_prices_history`, `lp_pool_apr`, `gas_fee`, `slippage_estimate`, `volatility_window`, `rebalance_threshold`, `range_width_factor`, and `ewma_lambda`. Justify: Allows flexible testing; historical prices can be fetched via API (e.g., Coingecko) if array is empty. Slippage can be dynamically estimated via Aerodrome pool data API.
 
-3. **Compute Volatility**: Use `cbbtc_prices_history` to calculate log returns. Initialize EWMA variance with simple variance over the last `volatility_window` entries if first run, then update using \( ewmaVar = ewma_lambda * ewmaVar + (1 - ewma_lambda) * latestReturn^2 \). Compute σ as sqrt(ewmaVar) * sqrt(365). Persist EWMA variance in state or file for continuity. Justify: EWMA provides better responsiveness to recent volatility changes, enhancing dynamic ranges based on historical data for predictive power.
+3. **Compute Volatility**: Use `cbbtc_prices_history` to calculate log returns. Initialize EWMA variance with simple variance over the last `volatility_window` entries if first run, then update using $ ewmaVar = ewma_lambda * ewmaVar + (1 - ewma_lambda) * latestReturn^2 $. Compute σ as sqrt(ewmaVar) * sqrt(365). Persist EWMA variance in state or file for continuity. Justify: EWMA provides better responsiveness to recent volatility changes, enhancing dynamic ranges based on historical data for predictive power.
 
 4. **Check Rebalancing Trigger**: Compare current `cbbtc_price` to existing range (store range bounds in state or file for persistence). Calculate deviation as |log(price / center)| / σ and compare to `rebalance_threshold`. Justify: Prevents unnecessary checks; threshold ensures economic viability.
 
@@ -106,8 +106,8 @@ Perform a rigorous backtest to find the optimal values for these parameters.
 This is the single most important step before deployment.
 
 2. Optional but Recommended: Finalize Logic for Market Trends
-The current model uses a symmetric range, which is optimal for sideways, mean-reverting markets.
-As previously discussed, its main weakness is inefficiency during strong, sustained trends.
+   The current model uses a symmetric range, which is optimal for sideways, mean-reverting markets.
+   As previously discussed, its main weakness is inefficiency during strong, sustained trends.
 
 Make a final decision on how to handle market trends. You have two valid paths:
 - Path A: Acknowledge and Accept (The Simple Path). Proceed with the current symmetric range logic.
