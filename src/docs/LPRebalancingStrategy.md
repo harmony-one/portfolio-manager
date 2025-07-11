@@ -52,7 +52,7 @@ The optimal strategy proposed here is a **Volatility-Adaptive Threshold Rebalanc
 ### Key Components and Logic
 
 1. **Volatility Calculation**:
-   - Compute daily log returns from `cbbtc_prices_history` over `volatility_window` (e.g., 30 days): \($ r_t = \ln(\frac{p_t}{p_{t-1}}$) \).
+   - Compute daily log returns from `cbbtc_prices_history` over `volatility_window` (e.g., 30 days): $r_t = \ln\left( \frac{p_t}{p_{t-1}} \right)$.
    - Use Exponentially Weighted Moving Average (EWMA) for variance: Initialize with simple variance over the window, then update as \($ \sigma_t^2 = \lambda \cdot \sigma_{t-1}^2 + (1 - \lambda) \cdot r_{t-1}^2$ \), where \($\lambda$\) is `ewma_lambda` (e.g., 0.94).
    - Volatility \($ \sigma = \sqrt{\sigma_t^2} \times \sqrt{365} $\) (annualized). This gives more weight to recent data, improving responsiveness to market changes.
 
