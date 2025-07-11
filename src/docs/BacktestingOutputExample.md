@@ -1,18 +1,19 @@
 ## Uniform output table format for backtesting
 
-| timestamp  | asset_composition | asset_amounts | total_portfolio_value | pnl    | return  | net_gain_vs_hold | capital_used_in_trading | total_capital_locked | lp_fees_earned | trading_fees_paid | gas_fees_paid | max_drawdown | max_gain | impermanent_loss | asset_exposure | rebalancing_actions | notes |
-|------------|-------------------|---------------|-----------------------|--------|---------|------------------|-------------------------|----------------------|----------------|-------------------|---------------|--------------|----------|------------------|----------------|---------------------|-------|
-| 1752071317 | BTC,USDC          | 1.0,110000    | $0                    | 0.00%  | $0      | $219,000         | $219,000                | $0                   | $0             | $0                | 0%            | 0%           | 0.00%    | 0%               | 1,1            | Start               |       |
-| 1752071317 | BTC,USDC          | 1.0,110000    | $X,XXX                | X.XX%  | $X,XXX  | $XXX,XXX         | $XXX,XXX                | $X,XXX               | $XX            | $X                | X%            | X%           | X.XX%    | XX%              | X,X            |                     |       |
-| ...        | ...               | ...           | ...                   | ...    | ...     | ...              | ...                     | ...                  | ...            | ...               | ...           | ...          | ...      | ...              | ...            |                     |       |
-| 1752071317 | BTC,USDC          | 1.0,110000    | $YY,YYY               | YY.YY% | $YY,YYY | $ZZZ,ZZZ         | $ZZZ,ZZZ                | $YY,YYY              | $YY            | $Y                | Y%            | Y%           | Y.YY%    | YY%              | Y,Y            | End                 |       |
+| timestamp  | asset_composition | asset_amounts | total_portfolio_value | pnl    | return  | apr    | net_gain_vs_hold | capital_used_in_trading | total_capital_locked | lp_fees_earned | trading_fees_paid | gas_fees_paid | max_drawdown | max_gain | impermanent_loss | asset_exposure | rebalancing_actions | notes |
+|------------|-------------------|---------------|-----------------------|--------|---------|--------|------------------|-------------------------|----------------------|----------------|-------------------|---------------|--------------|----------|------------------|----------------|---------------------|-------|
+| 1752071317 | BTC,USDC          | 1.0,110000    | $0                    | 0.00%  | $0      | 0.00%  | $219,000         | $219,000                | $0                   | $0             | $0                | 0%            | 0%           | 0.00%    | 0%               | 1,1            | Start               |       |
+| 1752071317 | BTC,USDC          | 1.0,110000    | $X,XXX                | X.XX%  | $X,XXX  | X.XX%  | $XXX,XXX         | $XXX,XXX                | $X,XXX               | $XX            | $X                | X%            | X%           | X.XX%    | XX%              | X,X            |                     |       |
+| ...        | ...               | ...           | ...                   | ...    | ...     | ...    | ...              | ...                     | ...                  | ...            | ...               | ...           | ...          | ...      | ...              | ...            |                     |       |
+| 1752071317 | BTC,USDC          | 1.0,110000    | $YY,YYY               | YY.YY% | $YY,YYY | YY.YY% | $ZZZ,ZZZ         | $ZZZ,ZZZ                | $YY,YYY              | $YY            | $Y                | Y%            | Y%           | Y.YY%    | YY%              | Y,Y            | End                 |       |
 
 ### Column Definitions & Interpretation
 
 - BTC Price: Market price of BTC at the increment.
 - Total Portfolio Value: Combined value of all assets (BTC, USDC, LP position, hedge PnL). 
 - Profit/Loss ($): Cumulative profit or loss since inception. 
-- Return (%): Cumulative return as a percentage of starting capital. 
+- Return (%): Cumulative return as a percentage of starting capital.
+- APR (%): Annualized return rate - current performance extrapolated to yearly basis for strategy comparison. 
 - Net Gain vs. Hold ($): total profit or loss of providing liquidity compared to holding the assets. It includes trading fees, rewards, and impermanent loss (IL).
 - Capital Used in Trading: Actual capital actively deployed (including margin/collateral for hedges). 
 - Total Capital Locked: All capital locked in LP, hedge collateral, and buffers. 
