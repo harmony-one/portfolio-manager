@@ -10,6 +10,7 @@ interface ColumnConfig {
   type: 'number' | 'string';
   fixed?: number;
   headerConsole: string;
+  dataType: string; // Added dataType property
 }
 
 export class ExportUtils {
@@ -33,18 +34,27 @@ export class ExportUtils {
   // Centralized column configuration
   private getColumnConfigs(): ColumnConfig[] {
     return [
-      { name: 'timestamp', padEnd: 12, type: 'string', headerConsole: 'time' },
+      { name: 'timestamp', padEnd: 12, type: 'string', headerConsole: 'time', dataType: 'unix' },
       {
         name: 'asset_composition',
         padEnd: 12,
         type: 'string',
         headerConsole: 'assets',
+        dataType: 'text',
       },
       {
         name: 'asset_amounts',
         padEnd: 18,
         type: 'string',
         headerConsole: 'amounts',
+        dataType: 'amounts',
+      },
+      {
+        name: 'btc_price',
+        padEnd: 18,
+        type: 'string',
+        headerConsole: 'btc',
+        dataType: '$',
       },
       {
         name: 'total_portfolio_value',
@@ -52,6 +62,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'value',
+        dataType: '$',
       },
       {
         name: 'pnl',
@@ -59,6 +70,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'pnl',
+        dataType: '$',
       },
       {
         name: 'return',
@@ -66,6 +78,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 3,
         headerConsole: 'return%',
+        dataType: '%',
       },
       {
         name: 'apr',
@@ -73,6 +86,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 3,
         headerConsole: 'apr%',
+        dataType: '%',
       },
       {
         name: 'net_gain_vs_hold',
@@ -80,6 +94,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'vs_hold',
+        dataType: '$',
       },
       {
         name: 'capital_used_in_trading',
@@ -87,6 +102,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'cap_used',
+        dataType: '$',
       },
       {
         name: 'total_capital_locked',
@@ -94,6 +110,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'cap_lock',
+        dataType: '$',
       },
       {
         name: 'lp_fees_earned',
@@ -101,6 +118,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 2,
         headerConsole: 'lp_fees',
+        dataType: '$',
       },
       {
         name: 'trading_fees_paid',
@@ -108,6 +126,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'trade_fee',
+        dataType: '$',
       },
       {
         name: 'gas_fees_paid',
@@ -115,6 +134,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'gas_fee',
+        dataType: '$',
       },
       {
         name: 'max_drawdown',
@@ -122,6 +142,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 3,
         headerConsole: 'max_dd%',
+        dataType: '%',
       },
       {
         name: 'max_gain',
@@ -129,6 +150,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 3,
         headerConsole: 'max_gain%',
+        dataType: '%',
       },
       {
         name: 'impermanent_loss',
@@ -136,6 +158,7 @@ export class ExportUtils {
         type: 'number',
         fixed: 3,
         headerConsole: 'il%',
+        dataType: '%',
       },
       {
         name: 'asset_exposure',
@@ -143,20 +166,22 @@ export class ExportUtils {
         type: 'number',
         fixed: 0,
         headerConsole: 'exposure%',
+        dataType: '%',
       },
       {
         name: 'rebalancing_actions',
         padEnd: 6,
         type: 'string',
         headerConsole: 'rebal',
+        dataType: '#',
       },
-      { name: 'notes', padEnd: 10, type: 'string', headerConsole: 'notes' },
+      { name: 'notes', padEnd: 10, type: 'string', headerConsole: 'notes', dataType: 'text' },
     ];
   }
 
   // Get headers for TSV (full names)
   getOutputHeaders(): string[] {
-    return this.getColumnConfigs().map((col) => col.name);
+    return this.getColumnConfigs().map((col) => `${col.name}${col.dataType ? ` (${col.dataType})` : ''}`);
   }
 
   // Print formatted header for console (short names)
@@ -199,6 +224,7 @@ export class ExportUtils {
       status.timestamp,
       status.assetComposition,
       status.assetAmounts,
+      status.btcPrice,
       status.totalPortfolioValue,
       status.pnl,
       status.return,

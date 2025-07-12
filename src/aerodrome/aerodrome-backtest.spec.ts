@@ -4,11 +4,15 @@ import {
   fetchPoolDayData,
   fetchPoolHourData,
 } from './subgraph.client';
-import { GranularityType, PoolTestConfig, PositionType } from './types';
-import { AerodromeSwapDecimalsPosition } from './aerodrome-defilabs.position';
+import { PoolTestConfig } from './types';
+import { AerodromeLiquidPosition } from './aerodrome-liquid.position';
 import { ExportUtils } from '../common/utils/report-export.utils';
 import { logger } from '../common/utils/common.utils';
-import { UnifiedOutputStatus } from '../common/types';
+import {
+  UnifiedOutputStatus,
+  GranularityType,
+  PositionType,
+} from '../common/types';
 
 const POOL_CONFIGS: Record<string, PoolTestConfig> = {
   // Original cbBTC/USDC pool (newer, March 2025)
@@ -104,7 +108,7 @@ async function runAerodromeBacktest(
     const initialToken1Price = parseFloat(firstDay.token1Price);
     const totalPoolLiquidity = parseFloat(firstDay.liquidity);
 
-    const position = AerodromeSwapDecimalsPosition.create(
+    const position = AerodromeLiquidPosition.create(
       config.initialAmount,
       config.positionType,
       initialTick,
@@ -235,7 +239,7 @@ async function runAerodromeBacktest(
       logger.log('=== Concentration Analysis ===');
 
       // Create a temporary full-range position to compare liquidity
-      const fullRangePosition = AerodromeSwapDecimalsPosition.create(
+      const fullRangePosition = AerodromeLiquidPosition.create(
         config.initialAmount,
         'full-range',
         initialTick,
@@ -301,11 +305,11 @@ describe('Aerodrome LP Backtesting with Real Fee Growth', () => {
     const baseConfig = POOL_CONFIGS.cbBTC_USDC;
     const localConfig = {
       ...baseConfig,
-      granularity: 'hourly' as GranularityType,
+      granularity: 'daily' as GranularityType,
       initialAmount: 10000,
       positionType: '10%' as PositionType,
-      startDate: '2025-06-29',
-      endDate: '2025-06-30',
+      startDate: '2025-05-01',
+      endDate: '2025-07-11',
       useCompoundingAPR: true,
     };
     await runAerodromeBacktest(localConfig, true);

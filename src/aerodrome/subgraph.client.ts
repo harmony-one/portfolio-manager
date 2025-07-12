@@ -1,8 +1,9 @@
 // src/aerodrome/subgraph.client.ts
 import axios from 'axios';
 import 'dotenv/config';
-import { PoolDayData, PoolHourData, PoolInfo } from './types';
+import { PoolInfo } from './types';
 import { logger } from '../common/utils/common.utils';
+import { PoolDayData, PoolHourData } from '../common/types';
 
 const SUBGRAPH_API_KEY = process.env.SUBGRAPH_API_KEY;
 
